@@ -1,0 +1,38 @@
+services:
+  qbittorrent:
+    image: lscr.io/linuxserver/qbittorrent
+    container_name: dev_qbittorrent
+    network_mode: "service:gluetun_qbit"
+    environment:
+      - PUID=1000
+      - PGID=1000
+      - WEBUI_PORT=8081
+    volumes:
+      - ./tmp/qbittorrent:/config
+
+  gluetun_qbit:
+    image: qmcgaw/gluetun
+    container_name: dev_gluetun_qbit
+    cap_add:
+      - NET_ADMIN
+    ports:
+      - "8081:8081" # qBittorrent WebUI
+    environment:
+      VPN_SERVICE_PROVIDER: protonvpn
+      VPN_TYPE: wireguard
+      WIREGUARD_PRIVATE_KEY: ${WIREGUARD_PRIVATE_KEY_QBIT}
+      VPN_PORT_FORWARDING: on
+      VPN_PORT_FORWARDING_UP_COMMAND: |
+        /bin/sh -c '
+          wget -O- --retry-connrefused \
+          --post-data "json={\"listen_port\":{{PORTS}},\"current_network_interface\":\"tun0\",\"random_port\":false,\"upnp\":false}" \
+          http://127.0.0.1:8081/api/v2/app/setPreferences 2>&1
+        '
+      VPN_PORT_FORWARDING_DOWN_COMMAND: |
+        /bin/sh -c '
+          wget -O- --retry-connrefused \
+          --post-data "json={\"listen_port\":0,\"current_network_interface\":\"lo\"}" \
+          http://127.0.0.1:8081/api/v2/app/setPreferences 2>&1
+        '
+    devices:
+      - /dev/net/tun:/dev/net/tun
