@@ -1,0 +1,8 @@
+services:
+  qBittorrent:
+    ip_source:
+      type: "static"
+      value: "74.118.126.97"
+    port_source:
+      type: "static"
+      value: "53664"
