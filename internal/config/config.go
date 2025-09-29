@@ -10,6 +10,12 @@ import (
 	"github.com/goccy/go-yaml"
 )
 
+type SourceType string
+
+const (
+	SourceTypeFile SourceType = "file"
+)
+
 type Config struct {
 	Services map[string]Service `yaml:"services" validate:"required,dive"`
 }
@@ -21,8 +27,11 @@ type Service struct {
 }
 
 type Source struct {
-	Type  string `yaml:"type" validate:"required,oneof=static"`
-	Value string `yaml:"value" validate:"required_if=Type static"`
+	Type       SourceType `yaml:"type" validate:"required,oneof=file static"`
+	Value      string     `yaml:"value" validate:"required_if=Type static"`
+	Path       string     `yaml:"path" validate:"required_if=Type file"`
+	Pattern    string     `yaml:"pattern"`
+	MatchGroup *int       `yaml:"match_group" default:"1" validate:"omitempty,min=0"`
 }
 
 func LoadFromFile(filePath string) (Config, error) {
