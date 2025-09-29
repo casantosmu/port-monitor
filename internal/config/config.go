@@ -5,22 +5,24 @@ import (
 	"fmt"
 	"os"
 
+	"github.com/creasty/defaults"
+	"github.com/go-playground/validator/v10"
 	"github.com/goccy/go-yaml"
 )
 
 type Config struct {
-	Services map[string]Service `yaml:"services"`
+	Services map[string]Service `yaml:"services" validate:"required,dive"`
 }
 
 type Service struct {
-	Enabled    *bool  `yaml:"enabled"`
-	IPSource   Source `yaml:"ip_source"`
-	PortSource Source `yaml:"port_source"`
+	Enabled    *bool  `yaml:"enabled" default:"true" validate:"required"`
+	IPSource   Source `yaml:"ip_source" validate:"required"`
+	PortSource Source `yaml:"port_source" validate:"required"`
 }
 
 type Source struct {
-	Type  string `yaml:"type"`
-	Value string `yaml:"value"`
+	Type  string `yaml:"type" validate:"required,oneof=static"`
+	Value string `yaml:"value" validate:"required_if=Type static"`
 }
 
 func LoadFromFile(filePath string) (Config, error) {
@@ -36,6 +38,16 @@ func LoadFromFile(filePath string) (Config, error) {
 
 	if err := decoder.Decode(&conf); err != nil {
 		return conf, fmt.Errorf("error parsing config yaml: %w", err)
+	}
+
+	if err := defaults.Set(&conf); err != nil {
+		return conf, fmt.Errorf("error setting config defaults: %w", err)
+	}
+
+	validate := validator.New(validator.WithRequiredStructEnabled())
+	if err := validate.Struct(conf); err != nil {
+		// TODO: Pretty errors
+		return conf, err
 	}
 
 	return conf, nil
