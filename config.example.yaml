@@ -4,5 +4,7 @@ services:
       type: "static"
       value: "74.118.126.97"
     port_source:
-      type: "static"
-      value: "53664"
+      type: "file"
+      path: "./tmp/qbittorrent/qBittorrent/qBittorrent.conf"
+      pattern: 'Session\\Port=(\d+)'
+      # match_group: 1  ← Default

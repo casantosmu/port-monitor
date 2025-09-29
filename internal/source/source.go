@@ -10,6 +10,8 @@ func Get(src config.Source) (string, error) {
 	switch src.Type {
 	case config.SourceTypeFile:
 		return fileSource(src)
+	case config.SourceTypeStatic:
+		return staticSource(src)
 	default:
 		return "", fmt.Errorf("unknown source type: %s", src.Type)
 	}

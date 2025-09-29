@@ -13,7 +13,8 @@ import (
 type SourceType string
 
 const (
-	SourceTypeFile SourceType = "file"
+	SourceTypeFile   SourceType = "file"
+	SourceTypeStatic SourceType = "static"
 )
 
 type Config struct {
