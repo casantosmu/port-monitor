@@ -1,9 +1,13 @@
 package main
 
 import (
+	"context"
 	"flag"
 	"log"
+	"os"
+	"os/signal"
 	"sync"
+	"syscall"
 	"time"
 
 	"github.com/casantosmu/port-monitor/internal/config"
@@ -14,6 +18,9 @@ func main() {
 	var configPath string
 	flag.StringVar(&configPath, "config", "config.yaml", "path to config file")
 	flag.Parse()
+
+	ctx, cancel := signal.NotifyContext(context.Background(), os.Interrupt, syscall.SIGTERM)
+	defer cancel()
 
 	log.Println("[main] starting port-monitor")
 
@@ -29,30 +36,37 @@ func main() {
 
 		go func(name string, svc config.Service) {
 			defer wg.Done()
-			watchService(name, svc)
+			watchService(ctx, name, svc)
 		}(name, svc)
 	}
+
+	<-ctx.Done()
+	log.Println("[main] received shutdown signal")
 
 	wg.Wait()
 	log.Println("[main] port-monitor stopped")
 }
 
-func watchService(name string, svc config.Service) {
+func watchService(ctx context.Context, name string, svc config.Service) {
 	defer log.Printf("[%s] monitoring stopped", name)
 
 	timer := time.NewTimer(0)
 	defer timer.Stop()
 
 	for {
-		<-timer.C
-		res, err := monitor.Start(svc)
+		select {
+		case <-ctx.Done():
+			return
+		case <-timer.C:
+			res, err := monitor.Start(svc)
 
-		if err != nil {
-			log.Printf("[%s] %s", name, err)
-		} else {
-			log.Printf("[%s] IP: %s | Port: %s", name, res.IP, res.Port)
+			if err != nil {
+				log.Printf("[%s] %s", name, err)
+			} else {
+				log.Printf("[%s] IP: %s | Port: %s", name, res.IP, res.Port)
+			}
+
+			timer.Reset(svc.Interval)
 		}
-
-		timer.Reset(svc.Interval)
 	}
 }
