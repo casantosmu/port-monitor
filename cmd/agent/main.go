@@ -6,7 +6,7 @@ import (
 	"sync"
 
 	"github.com/casantosmu/port-monitor/internal/config"
-	"github.com/casantosmu/port-monitor/internal/source"
+	"github.com/casantosmu/port-monitor/internal/monitor"
 )
 
 func main() {
@@ -29,19 +29,13 @@ func main() {
 		go func(name string, svc config.Service) {
 			defer wg.Done()
 
-			ip, err := source.Get(svc.IPSource)
+			res, err := monitor.Start(svc)
 			if err != nil {
-				log.Printf("[%s] ip_source failed: %s", name, err)
+				log.Printf("[%s] %s", name, err)
 				return
 			}
 
-			port, err := source.Get(svc.PortSource)
-			if err != nil {
-				log.Printf("[%s] port_source failed: %s", name, err)
-				return
-			}
-
-			log.Printf("[%s] IP: %s | Port: %s", name, ip, port)
+			log.Printf("[%s] IP: %s | Port: %s", name, res.IP, res.Port)
 		}(name, svc)
 	}
 
