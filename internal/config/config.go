@@ -4,6 +4,7 @@ import (
 	"bytes"
 	"fmt"
 	"os"
+	"time"
 
 	"github.com/creasty/defaults"
 	"github.com/go-playground/validator/v10"
@@ -22,9 +23,10 @@ type Config struct {
 }
 
 type Service struct {
-	Enabled    *bool  `yaml:"enabled" default:"true" validate:"required"`
-	IPSource   Source `yaml:"ip_source" validate:"required"`
-	PortSource Source `yaml:"port_source" validate:"required"`
+	Enabled    *bool         `yaml:"enabled" default:"true" validate:"required"`
+	Interval   time.Duration `yaml:"interval" validate:"required,min=30s"`
+	IPSource   Source        `yaml:"ip_source" validate:"required"`
+	PortSource Source        `yaml:"port_source" validate:"required"`
 }
 
 type Source struct {

@@ -4,6 +4,7 @@ import (
 	"flag"
 	"log"
 	"sync"
+	"time"
 
 	"github.com/casantosmu/port-monitor/internal/config"
 	"github.com/casantosmu/port-monitor/internal/monitor"
@@ -28,17 +29,30 @@ func main() {
 
 		go func(name string, svc config.Service) {
 			defer wg.Done()
-
-			res, err := monitor.Start(svc)
-			if err != nil {
-				log.Printf("[%s] %s", name, err)
-				return
-			}
-
-			log.Printf("[%s] IP: %s | Port: %s", name, res.IP, res.Port)
+			watchService(name, svc)
 		}(name, svc)
 	}
 
 	wg.Wait()
 	log.Println("[main] port-monitor stopped")
+}
+
+func watchService(name string, svc config.Service) {
+	defer log.Printf("[%s] monitoring stopped", name)
+
+	timer := time.NewTimer(0)
+	defer timer.Stop()
+
+	for {
+		<-timer.C
+		res, err := monitor.Start(svc)
+
+		if err != nil {
+			log.Printf("[%s] %s", name, err)
+		} else {
+			log.Printf("[%s] IP: %s | Port: %s", name, res.IP, res.Port)
+		}
+
+		timer.Reset(svc.Interval)
+	}
 }

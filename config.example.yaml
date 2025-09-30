@@ -1,5 +1,6 @@
 services:
   qBittorrent:
+    interval: 3h
     ip_source:
       type: "static"
       value: "74.118.126.97"
