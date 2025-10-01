@@ -7,6 +7,7 @@ require (
 	github.com/creasty/defaults v1.8.0
 	github.com/go-playground/validator/v10 v10.27.0
 	github.com/goccy/go-yaml v1.18.0
+	github.com/julienschmidt/httprouter v1.3.0
 )
 
 require (
