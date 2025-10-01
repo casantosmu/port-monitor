@@ -16,6 +16,7 @@ services:
     cap_add:
       - NET_ADMIN
     ports:
+      - "8000:8000"
       - "8081:8081" # qBittorrent WebUI
     environment:
       VPN_SERVICE_PROVIDER: protonvpn

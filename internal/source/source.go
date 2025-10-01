@@ -1,13 +1,16 @@
 package source
 
 import (
+	"context"
 	"fmt"
 
 	"github.com/casantosmu/port-monitor/internal/config"
 )
 
-func Get(src config.Source) (string, error) {
+func Get(ctx context.Context, src config.Source) (string, error) {
 	switch src.Type {
+	case config.SourceTypeHTTP:
+		return httpSource(ctx, src)
 	case config.SourceTypeFile:
 		return fileSource(src)
 	case config.SourceTypeStatic:

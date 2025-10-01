@@ -14,6 +14,7 @@ import (
 type SourceType string
 
 const (
+	SourceTypeHTTP   SourceType = "http"
 	SourceTypeFile   SourceType = "file"
 	SourceTypeStatic SourceType = "static"
 )
@@ -30,11 +31,14 @@ type Service struct {
 }
 
 type Source struct {
-	Type       SourceType `yaml:"type" validate:"required,oneof=file static"`
-	Value      string     `yaml:"value" validate:"required_if=Type static"`
-	Path       string     `yaml:"path" validate:"required_if=Type file"`
-	Pattern    string     `yaml:"pattern"`
-	MatchGroup *int       `yaml:"match_group" default:"1" validate:"omitempty,min=0"`
+	Type       SourceType    `yaml:"type" validate:"required,oneof=http file static"`
+	Value      string        `yaml:"value" validate:"required_if=Type static"`
+	URL        string        `yaml:"url" validate:"required_if=Type http"`
+	JSONPath   string        `yaml:"json_path"`
+	Timeout    time.Duration `yaml:"timeout" default:"10s"`
+	Path       string        `yaml:"path" validate:"required_if=Type file"`
+	Pattern    string        `yaml:"pattern"`
+	MatchGroup *int          `yaml:"match_group" default:"1" validate:"omitempty,min=0"`
 }
 
 func LoadFromFile(filePath string) (Config, error) {

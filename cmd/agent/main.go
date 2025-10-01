@@ -2,6 +2,7 @@ package main
 
 import (
 	"context"
+	"errors"
 	"flag"
 	"log"
 	"os"
@@ -58,9 +59,13 @@ func watchService(ctx context.Context, name string, svc config.Service) {
 		case <-ctx.Done():
 			return
 		case <-timer.C:
-			res, err := monitor.Start(svc)
+			res, err := monitor.Start(ctx, svc)
 
 			if err != nil {
+				if errors.Is(err, context.Canceled) {
+					return
+				}
+
 				log.Printf("[%s] %s", name, err)
 			} else {
 				log.Printf("[%s] IP: %s | Port: %s", name, res.IP, res.Port)
