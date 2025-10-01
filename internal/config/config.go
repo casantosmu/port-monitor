@@ -34,6 +34,7 @@ type Source struct {
 	Type       SourceType    `yaml:"type" validate:"required,oneof=http file static"`
 	Value      string        `yaml:"value" validate:"required_if=Type static"`
 	URL        string        `yaml:"url" validate:"required_if=Type http"`
+	Proxy      string        `yaml:"proxy"`
 	JSONPath   string        `yaml:"json_path"`
 	Timeout    time.Duration `yaml:"timeout" default:"10s"`
 	Path       string        `yaml:"path" validate:"required_if=Type file"`

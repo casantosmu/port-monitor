@@ -6,6 +6,7 @@ import (
 	"fmt"
 	"io"
 	"net/http"
+	"net/url"
 
 	"github.com/PaesslerAG/jsonpath"
 	"github.com/casantosmu/port-monitor/internal/config"
@@ -14,6 +15,15 @@ import (
 func httpSource(ctx context.Context, src config.Source) (string, error) {
 	client := &http.Client{
 		Timeout: src.Timeout,
+	}
+
+	if src.Proxy != "" {
+		proxyURL, err := url.Parse(src.Proxy)
+		if err != nil {
+			return "", err
+		}
+
+		client.Transport = &http.Transport{Proxy: http.ProxyURL(proxyURL)}
 	}
 
 	req, err := http.NewRequestWithContext(ctx, "GET", src.URL, nil)

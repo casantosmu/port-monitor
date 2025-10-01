@@ -16,7 +16,7 @@ services:
     cap_add:
       - NET_ADMIN
     ports:
-      - "8000:8000"
+      - "8888:8888" # HTTPPROXY_PORT
       - "8081:8081" # qBittorrent WebUI
     environment:
       VPN_SERVICE_PROVIDER: protonvpn
@@ -35,5 +35,8 @@ services:
           --post-data "json={\"listen_port\":0,\"current_network_interface\":\"lo\"}" \
           http://127.0.0.1:8081/api/v2/app/setPreferences 2>&1
         '
+      HTTPPROXY: on
+      HTTPPROXY_LOG: on
+      HTTPPROXY_PORT: 8888
     devices:
       - /dev/net/tun:/dev/net/tun
