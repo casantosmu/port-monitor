@@ -33,8 +33,12 @@ func main() {
 	var wg sync.WaitGroup
 
 	for name, svc := range conf.Services {
-		wg.Add(1)
+		if svc.Enabled == nil || !*svc.Enabled {
+			log.Printf("[%s] disabled, skipping", name)
+			continue
+		}
 
+		wg.Add(1)
 		go func(name string, svc config.Service) {
 			defer wg.Done()
 			watchService(ctx, name, svc)
@@ -68,7 +72,12 @@ func watchService(ctx context.Context, name string, svc config.Service) {
 
 				log.Printf("[%s] %s", name, err)
 			} else {
-				log.Printf("[%s] IP: %s | Port: %s", name, res.IP, res.Port)
+				msg := "port accessible"
+				if !res.Success {
+					msg = "port unreachable"
+				}
+
+				log.Printf("[%s] %s | IP: %s | Port: %s", name, msg, res.IP, res.Port)
 			}
 
 			timer.Reset(svc.Interval)

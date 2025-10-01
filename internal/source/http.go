@@ -7,6 +7,7 @@ import (
 	"io"
 	"net/http"
 	"net/url"
+	"strings"
 
 	"github.com/PaesslerAG/jsonpath"
 	"github.com/casantosmu/port-monitor/internal/config"
@@ -26,9 +27,18 @@ func httpSource(ctx context.Context, src config.Source) (string, error) {
 		client.Transport = &http.Transport{Proxy: http.ProxyURL(proxyURL)}
 	}
 
-	req, err := http.NewRequestWithContext(ctx, "GET", src.URL, nil)
+	var bodyReader io.Reader
+	if src.Body != "" {
+		bodyReader = strings.NewReader(src.Body)
+	}
+
+	req, err := http.NewRequestWithContext(ctx, src.Method, src.URL, bodyReader)
 	if err != nil {
 		return "", err
+	}
+
+	for key, value := range src.Headers {
+		req.Header.Set(key, value)
 	}
 
 	resp, err := client.Do(req)

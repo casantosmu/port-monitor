@@ -1,5 +1,6 @@
 services:
   qBittorrent:
+    # enabled: true  ← Default
     interval: "3h"
     ip_source:
       type: "http"
@@ -11,3 +12,11 @@ services:
       path: "./tmp/qbittorrent/qBittorrent/qBittorrent.conf"
       pattern: 'Session\\Port=(\d+)'
       # match_group: 1  ← Default
+    connectivity_check:
+      type: "http"
+      url: "https://ports.yougetsignal.com/check-port.php"
+      method: "POST"
+      body: "remoteAddress={{ip}}&portNumber={{port}}"
+      success_pattern: "is open"
+      headers:
+        Content-Type: "application/x-www-form-urlencoded; charset=UTF-8"
