@@ -66,16 +66,27 @@ type Check struct {
 func LoadFromFile(filePath string) (Config, error) {
 	var conf Config
 
-	content, err := os.ReadFile(filePath)
+	raw, err := os.ReadFile(filePath)
 	if err != nil {
 		return conf, err
 	}
+
+	content := expandVars(raw)
 
 	reader := bytes.NewReader(content)
 	decoder := yaml.NewDecoder(reader, yaml.DisallowUnknownField())
 
 	if err := decoder.Decode(&conf); err != nil {
-		return conf, fmt.Errorf("error parsing config yaml: %w", err)
+		rawReader := bytes.NewReader(raw)
+		rawDecoder := yaml.NewDecoder(rawReader, yaml.DisallowUnknownField())
+
+		if err := rawDecoder.Decode(&conf); err != nil {
+			return conf, fmt.Errorf("error parsing config yaml: %w", err)
+		}
+
+		// Security: If raw config is valid, the env vars broke the YAML.
+		// Return generic error to avoid leaking secrets in the logs.
+		return conf, fmt.Errorf("error parsing config yaml after env var expansion (error details hidden for security)")
 	}
 
 	if err := defaults.Set(&conf); err != nil {
