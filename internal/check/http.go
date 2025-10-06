@@ -42,6 +42,10 @@ func httpCheck(ctx context.Context, ip, port string, check config.Check) (bool, 
 		return false, err
 	}
 
+	if check.BasicAuth != nil {
+		req.SetBasicAuth(check.BasicAuth.Username, check.BasicAuth.Password)
+	}
+
 	for key, value := range check.Headers {
 		req.Header.Set(key, value)
 	}

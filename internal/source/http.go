@@ -37,6 +37,10 @@ func httpSource(ctx context.Context, src config.Source) (string, error) {
 		return "", err
 	}
 
+	if src.BasicAuth != nil {
+		req.SetBasicAuth(src.BasicAuth.Username, src.BasicAuth.Password)
+	}
+
 	for key, value := range src.Headers {
 		req.Header.Set(key, value)
 	}

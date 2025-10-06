@@ -45,6 +45,7 @@ type Source struct {
 	Method     string            `yaml:"method" default:"GET" validate:"oneof=GET POST"`
 	Body       string            `yaml:"body"`
 	Proxy      string            `yaml:"proxy"`
+	BasicAuth  *BasicAuth        `yaml:"basic_auth"`
 	JSONPath   string            `yaml:"json_path"`
 	Timeout    time.Duration     `yaml:"timeout" default:"10s"`
 	Path       string            `yaml:"path" validate:"required_if=Type file"`
@@ -59,8 +60,14 @@ type Check struct {
 	Method         string            `yaml:"method" default:"GET" validate:"oneof=GET POST"`
 	Body           string            `yaml:"body"`
 	Proxy          string            `yaml:"proxy"`
+	BasicAuth      *BasicAuth        `yaml:"basic_auth"`
 	SuccessPattern string            `yaml:"success_pattern" validate:"required_if=Type http"`
 	Timeout        time.Duration     `yaml:"timeout" default:"10s"`
+}
+
+type BasicAuth struct {
+	Username string `yaml:"username" validate:"required"`
+	Password string `yaml:"password" validate:"required"`
 }
 
 func LoadFromFile(filePath string) (Config, error) {
