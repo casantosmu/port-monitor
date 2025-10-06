@@ -16,8 +16,9 @@ services:
     cap_add:
       - NET_ADMIN
     ports:
-      - "8888:8888" # HTTPPROXY_PORT
-      - "8081:8081" # qBittorrent WebUI
+      - "8000:8000" # gluetun
+      - "8888:8888" # gluetun proxy
+      - "8081:8081" # qbittorrent
     environment:
       VPN_SERVICE_PROVIDER: protonvpn
       VPN_TYPE: wireguard

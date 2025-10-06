@@ -11,10 +11,11 @@ import (
 
 	"github.com/PaesslerAG/jsonpath"
 	"github.com/casantosmu/port-monitor/internal/config"
+	"github.com/hashicorp/go-retryablehttp"
 )
 
 func httpSource(ctx context.Context, src config.Source) (string, error) {
-	client := &http.Client{
+	httpClient := http.Client{
 		Timeout: src.Timeout,
 	}
 
@@ -24,15 +25,19 @@ func httpSource(ctx context.Context, src config.Source) (string, error) {
 			return "", err
 		}
 
-		client.Transport = &http.Transport{Proxy: http.ProxyURL(proxyURL)}
+		httpClient.Transport = &http.Transport{Proxy: http.ProxyURL(proxyURL)}
 	}
+
+	client := retryablehttp.NewClient()
+	client.HTTPClient = &httpClient
+	client.Logger = nil
 
 	var bodyReader io.Reader
 	if src.Body != "" {
 		bodyReader = strings.NewReader(src.Body)
 	}
 
-	req, err := http.NewRequestWithContext(ctx, src.Method, src.URL, bodyReader)
+	req, err := retryablehttp.NewRequestWithContext(ctx, src.Method, src.URL, bodyReader)
 	if err != nil {
 		return "", err
 	}

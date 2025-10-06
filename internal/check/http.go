@@ -10,10 +10,11 @@ import (
 	"strings"
 
 	"github.com/casantosmu/port-monitor/internal/config"
+	"github.com/hashicorp/go-retryablehttp"
 )
 
 func httpCheck(ctx context.Context, ip, port string, check config.Check) (bool, error) {
-	client := http.Client{
+	httpClient := http.Client{
 		Timeout: check.Timeout,
 	}
 
@@ -23,8 +24,12 @@ func httpCheck(ctx context.Context, ip, port string, check config.Check) (bool, 
 			return false, err
 		}
 
-		client.Transport = &http.Transport{Proxy: http.ProxyURL(proxyURL)}
+		httpClient.Transport = &http.Transport{Proxy: http.ProxyURL(proxyURL)}
 	}
+
+	client := retryablehttp.NewClient()
+	client.HTTPClient = &httpClient
+	client.Logger = nil
 
 	replacer := strings.NewReplacer(
 		"{{ip}}", ip,
@@ -37,7 +42,9 @@ func httpCheck(ctx context.Context, ip, port string, check config.Check) (bool, 
 		bodyReader = strings.NewReader(body)
 	}
 
-	req, err := http.NewRequestWithContext(ctx, check.Method, replacer.Replace(check.URL), bodyReader)
+	url := replacer.Replace(check.URL)
+
+	req, err := retryablehttp.NewRequestWithContext(ctx, check.Method, url, bodyReader)
 	if err != nil {
 		return false, err
 	}
